@@ -8,6 +8,26 @@ Created on Tue Mar 23 13:02:48 2021
 import numpy as np
 import matplotlib.pyplot as plt
 
+########################################################################################################################
+#Q1 divided difference matrix for Newton basis
+########################################################################################################################
+
+def divdif(x,y):
+    n = len(y)
+    mat = np.zeros((n,n))
+    mat[:,0]=y
+    for j in range(1,n): #col
+        for k in range(n-j): #row
+            mat[k][j] = (mat[k+1][j-1]-mat[k][j-1])/(x[k+j]-x[k])
+    return mat
+
+X=[-1,0,2,3]
+Y=[2,6,4,30]
+
+print(divdif(X,Y))
+
+########################################################################################################################
+
 ##Lagrange interpolation function.
 def Linterp(x, f, a, b, n):
     p=0
@@ -21,6 +41,17 @@ def Linterp(x, f, a, b, n):
         p+=Ltemp*Y[i]
     return p
 
+def Ninterp(x,f,a,b,n):
+    X = np.linspace(a, b, n)
+    Y = f(X)
+    A = divdif(X,Y)[0]
+    p = A[0]
+    for i in range(1,n):
+        n=1
+        for j in range(0,i):
+            n=n*(x-X[j])
+        p+=n*A[i]
+    return p
 ##endpoints and interval
 a = -1
 b = 1
@@ -51,21 +82,3 @@ plt.plot(X1,intg1(X1,21), "bx", label="Int n=21")
 plt.plot(X1,g1(X1), "g", label="y=1/(1+25x^2)")
 plt.legend()
 plt.show()
-
-########################################################################################################################
-#Q1 divided difference matrix for Newton basis
-########################################################################################################################
-
-def divdif(x,y):
-    n = len(y)
-    mat = np.zeros((n,n))
-    mat[:,0]=y
-    for j in range(1,n): #col
-        for k in range(n-j): #row
-            mat[k][j] = (mat[k+1][j-1]-mat[k][j-1])/(x[k+j]-x[k])
-    return mat
-
-X=[-1,0,2,3]
-Y=[2,6,4,30]
-
-print(divdif(X,Y))
