@@ -1,5 +1,6 @@
-from scipy import sqrt
 import numpy as np
+import matplotlib.pyplot as plt
+import scipy.interpolate as si
 
 ########################################################################################################################
 # Problem 2:
@@ -32,13 +33,75 @@ def cubspline(xint, yint):
 
     return coeff
 
-asd= cubspline([11,2,31,7,5,4,3],[1,2,3,2,5,7,1])
-
 def cubsplineval(coeff, xint, xval):
-    X= np.transpose(np.array([[(xval-i)**3,(xval-i)**2,(xval-i),1] for i in xint]))
-    return np.dot(coeff,X)
+    if not isinstance(xval,type(np.array([1,1]))):
+        xval = np.array([xval])
+    Y = np.zeros(len(xval))
+    for i in range(0,len(xval)):
+        index = 0
+        for k in range(0,len(xint)):
+            if xval[i]> xint[k]:
+                index = k
+        #index = bs.bisect_left(xint, xval[i])
+        if index == len(xint) - 1:
+            index = index -1
+        yval = np.array([(xval[i] - xint[index]) ** 3, (xval[i] - xint[index]) ** 2, (xval[i] - xint[index]), 1])
+        Y[i] = np.dot(coeff[index],yval)
+    return Y
 
-cubsplineval(asd, [1,2,3,4],5)
+def f1(x):
+    return np.exp(-4*x**2)
+
+def f2(x):
+    return 1/(1+25*x**2)
+
+#First plot f1:
+X1 = np.linspace(-1,1,100)
+X = np.linspace(-1,1,50)
+Xint = np.linspace(-1,1,5)
+Yint = f1(Xint)
+plt.subplot(2,1,1)
+plt.plot(Xint,Yint,"ro",label="Interpolation points, n=5")
+coeff = cubspline(Xint,Yint)
+plt.plot(X,cubsplineval(coeff,Xint,X),"b.",label="Cubic spline")
+plt.plot(X1,f1(X1),"g",label="y=exp(-4x^2)")
+cspline = si.CubicSpline(Xint,Yint,bc_type="natural")
+plt.legend()
+#second plot f1
+plt.subplot(2,1,2)
+Xint=np.linspace(-1,1,12)
+Yint = f1(Xint)
+plt.plot(Xint,Yint,"ro",label="Interpolation points, n=12")
+coeff = cubspline(Xint,Yint)
+plt.plot(X,cubsplineval(coeff,Xint,X),"b.",label="Cubic spline")
+plt.plot(X1,f1(X1),"g",label="y=exp(-4x^2)")
+cspline = si.CubicSpline(Xint,Yint,bc_type="natural")
+plt.legend()
+plt.show()
+
+#First plot f2:
+Xint = np.linspace(-1,1,15)
+Yint = f2(Xint)
+plt.subplot(2,1,1)
+plt.plot(Xint,Yint,"ro",label="Interpolation points, n=15")
+coeff = cubspline(Xint,Yint)
+plt.plot(X,cubsplineval(coeff,Xint,X),"b.",label="Cubic spline")
+plt.plot(X1,f2(X1),"g",label="y=1/(1+25x^2)")
+cspline = si.CubicSpline(Xint,Yint,bc_type="natural")
+plt.legend()
+#second plot f2:
+plt.subplot(2,1,2)
+Xint=np.linspace(-1,1,21)
+Yint = f2(Xint)
+plt.plot(Xint,Yint,"ro",label="Interpolation points, n=21")
+coeff = cubspline(Xint,Yint)
+plt.plot(X,cubsplineval(coeff,Xint,X),"b.",label="Cubic spline")
+plt.plot(X1,f2(X1),"g",label="y=y=1/(1+25x^2)")
+cspline = si.CubicSpline(Xint,Yint,bc_type="natural")
+plt.legend()
+plt.show()
+
+
 ########################################################################################################################
 # Problem 3:
 ########################################################################################################################
@@ -137,17 +200,17 @@ def s1002(S):
     if (S < YS[1]):
         #       Section H (Circular arc)
         radiant = BH ** 2 - (S + CH) ** 2
-        sqroot = sqrt(radiant)
+        sqroot = np.sqrt(radiant)
         wheel = AH + sqroot
     elif (S < YS[2]):
         #       Section G (Circular arc)
         radiant = BG ** 2 - (S + CG) ** 2
-        sqroot = sqrt(radiant)
+        sqroot = np.sqrt(radiant)
         wheel = AG + sqroot
     elif (S < YS[3]):
         #       Section F (Circular arc)
         radiant = BF ** 2 - (S + CF) ** 2
-        sqroot = sqrt(radiant)
+        sqroot = np.sqrt(radiant)
         wheel = AF + sqroot
     elif (S < YS[4]):
         #       Section E (LINEAR)
@@ -155,7 +218,7 @@ def s1002(S):
     elif (S < YS[5]):
         #       Section D (Circular arc)
         radiant = BD ** 2 - (S + CD) ** 2
-        sqroot = sqrt(radiant)
+        sqroot = np.sqrt(radiant)
         wheel = AD - sqroot
     elif (S < YS[6]):
         #       Section C
@@ -168,6 +231,20 @@ def s1002(S):
         wheel = -BA * S + AA;
     return wheel
 
+
+Xint = np.linspace(-69,60,30)
+Yint = [s1002(i) for i in Xint]
+coeff = cubspline(Xint,Yint)
+
+X = np.linspace(-69,60,200)
+Y = cubsplineval(coeff, Xint, X)
+Y1 = [s1002(i) for i in X]
+
+plt.plot(X,Y,"b.",label="Cubic spline")
+plt.plot(Xint,Yint,"ro",label="Interpolation points")
+plt.plot(X,Y1,"g",label="s1002(x)")
+plt.legend()
+plt.show()
 
 
 
