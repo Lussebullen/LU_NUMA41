@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as sp
 
 def ExEuler(fp, a, b, h, init):
     '''
@@ -21,14 +22,50 @@ def ExEuler(fp, a, b, h, init):
         X[i+1], Y[i+1] = X[i]+Xp*h, Y[i]+Yp*h
     return T,X,Y
 
-def f(t):
-    return 1/99*np.exp(-t)*np.array([1,0])+100/99*np.exp(-100*t)*np.array([-1,99])
+def ImEuler(fp, a, b, h, init): ##NOT DONE, doesnt work
+    '''
+    :param fp: f'(x,y) as an np.array
+    :param a: interval start (for plot, as it doesnt necessarily fit with h)
+    :param b: interval end --||--
+    :param h: step size
+    :param init: initial values as list
+    :return: T, X, Y approximating the solution to ODE on [a,b]
+    '''
+    intlen = b-a
+    n = int(np.ceil(intlen/h))
+    X, Y = np.zeros(n), np.zeros(n)
+    X[0],Y[0]=init[0], init[1]
+    T = np.linspace(a,b,n)
+    for i in range(n-1):
+        f = lambda x: x-X[i]-h*fp(x[0],x[1])
+        nextit = sp.root(f,init).x
+        X[i+1], Y[i+1] = nextit[0], nextit[1]
+    return T,X,Y
 
+def f(t):
+    return 100/99*np.exp(-t)*np.array([1,0])+1/99*np.exp(-100*t)*np.array([-1,99])
+#theoretical values:
 T = np.linspace(0,1,100)
 XY = np.array([list(f(t)) for t in T])
 X, Y = XY[:,0:1], XY[:,1:2]
-plt.plot(T,X,"r")
-plt.plot(T,Y,"b")
+#plt.plot(T,X,"r")
+#plt.plot(T,Y,"b")
+
+def ode(y1,y2):
+    return np.array([-y1+y2, -100*y2])
+
+#Explicit euler values
+Te,Xe,Ye = ExEuler(ode, 0,1,0.001,[1,1])
+
+#Implicit euler values
+Ti,Xi,Yi = ImEuler(ode, 0,1,0.001,[1,1])
+
+plt.plot(Xi,Yi,"gx",label="implicit euler")
+plt.plot(Xe,Ye,"b.",label="explicit euler")
+plt.plot(X,Y,"r",label="theoretical")
+plt.xlabel("Y1")
+plt.ylabel("Y2")
+plt.legend()
 plt.show()
 
 ########################################################
