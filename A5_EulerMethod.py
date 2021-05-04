@@ -37,7 +37,9 @@ def ImEuler(fp, a, b, h, init): ##NOT DONE, doesnt work
     X[0],Y[0]=init[0], init[1]
     T = np.linspace(a,b,n)
     for i in range(n-1):
-        f = lambda x: x-X[i]-h*fp(x[0],x[1])
+        #Root form of problem to solve
+        f = lambda x: x-np.array([X[i],Y[i]])-h*fp(x[0],x[1])
+        #Solve using root finding method
         nextit = sp.root(f,init).x
         X[i+1], Y[i+1] = nextit[0], nextit[1]
     return T,X,Y
@@ -53,18 +55,19 @@ X, Y = XY[:,0:1], XY[:,1:2]
 
 def ode(y1,y2):
     return np.array([-y1+y2, -100*y2])
-
+h=0.005
 #Explicit euler values
-Te,Xe,Ye = ExEuler(ode, 0,1,0.001,[1,1])
+Te,Xe,Ye = ExEuler(ode, 0,1,h,[1,1])
 
 #Implicit euler values
-Ti,Xi,Yi = ImEuler(ode, 0,1,0.001,[1,1])
+Ti,Xi,Yi = ImEuler(ode, 0,1,h,[1,1])
 
 plt.plot(Xi,Yi,"gx",label="implicit euler")
 plt.plot(Xe,Ye,"b.",label="explicit euler")
 plt.plot(X,Y,"r",label="theoretical")
 plt.xlabel("Y1")
 plt.ylabel("Y2")
+plt.title(f"Euler methods for h={h}")
 plt.legend()
 plt.show()
 
