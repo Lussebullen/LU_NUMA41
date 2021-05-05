@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as sp
 
+
 def ExEuler(fp, a, b, h, init):
     '''
     :param fp: f'(x,y) as an np.array
@@ -22,7 +23,8 @@ def ExEuler(fp, a, b, h, init):
         X[i+1], Y[i+1] = X[i]+Xp*h, Y[i]+Yp*h
     return T,X,Y
 
-def ImEuler(fp, a, b, h, init): ##NOT DONE, doesnt work
+
+def ImEuler(fp, a, b, h, init):
     '''
     :param fp: f'(x,y) as an np.array
     :param a: interval start (for plot, as it doesnt necessarily fit with h)
