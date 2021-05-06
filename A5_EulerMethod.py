@@ -57,21 +57,21 @@ X, Y = XY[:,0:1], XY[:,1:2]
 
 def ode(y1,y2):
     return np.array([-y1+y2, -100*y2])
-h=0.005
+h=0.01
 #Explicit euler values
 Te,Xe,Ye = ExEuler(ode, 0,1,h,[1,1])
 
 #Implicit euler values
 Ti,Xi,Yi = ImEuler(ode, 0,1,h,[1,1])
 
-plt.plot(Xi,Yi,"gx",label="implicit euler")
-plt.plot(Xe,Ye,"b.",label="explicit euler")
-plt.plot(X,Y,"r",label="theoretical")
-plt.xlabel("Y1")
-plt.ylabel("Y2")
-plt.title(f"Euler methods for h={h}")
-plt.legend()
-plt.show()
+# plt.plot(Xi,Yi,"gx",label="implicit euler")
+# plt.plot(Xe,Ye,"b.",label="explicit euler")
+# #plt.plot(X,Y,"r",label="theoretical")
+# plt.xlabel("Y1")
+# plt.ylabel("Y2")
+# plt.title(f"Euler methods for h={h}")
+# plt.legend()
+# plt.show()
 
 ########################################################
 #Lotka-Volterra
@@ -98,15 +98,15 @@ def LVex(x,y):
 #seemingly rabbits only wins if initial population of predators is 0
 #but this would result in a degenerate case of the eq. system.
 
-#T, X, Y = ExEuler(LVex,0,20,0.001,[10,5])
+T, X, Y = ExEuler(LVex,0,20,0.001,[10,5])
 
-#plt.plot(T,X,"r",label="rabbits")
-#plt.plot(T,Y,"b",label="foxes")
-#plt.title("LV system")
-#plt.xlabel("time (years)")
-#plt.ylabel("population")
-#plt.legend()
-#plt.show()
+plt.plot(T,X,"r",label="rabbits")
+plt.plot(T,Y,"b",label="foxes")
+plt.title("LV system")
+plt.xlabel("time (years)")
+plt.ylabel("population")
+plt.legend()
+plt.show()
 
 
 
