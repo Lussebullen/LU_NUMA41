@@ -36,8 +36,8 @@ def ode(a,ap):
     return np.array([ap, -g/l*np.sin(a)])
 
 
-# y0 = [np.pi/2, 0]
-# T, X, Y = ImEuler(ode,0,5,0.001,y0)
+y0 = [np.pi/2, 0]
+T, X, Y = ImEuler(ode,0,5,0.001,y0)
 # plt.plot(T,X,"r",label="a")
 # plt.plot(T,Y,"b",label="a'")
 # plt.xlabel("Time [s]")
