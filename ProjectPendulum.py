@@ -17,7 +17,7 @@ def Newton(F,guess, J):
     :return: result from first iteration of Newtons method
     '''
     init = guess
-    for i in range(2): #amount of Newton iterations
+    for i in range(1): #amount of Newton iterations
         dx = np.linalg.solve(J(init),-F(init))
         init+=dx
     return init
@@ -41,7 +41,7 @@ def ImEulerBuiltin(fp, a, b, h, init):
          #Root form of problem to solve
          f = lambda x: np.array([X[i],Y[i]])- x + h*fp(x[0],x[1])
          #Solve using root finding method
-         nextit = sp.root(f,init).x
+         nextit = sp.root(f,[X[i],Y[i]]).x
          X[i+1], Y[i+1] = nextit[0], nextit[1]
      return T,X,Y
 
@@ -67,7 +67,7 @@ def ImEuler(fp, a, b, h, init):
         # Root form of problem to solve
         f = lambda x: np.array([X[i], Y[i]]) - x + h * fp(x[0], x[1])
         # Solve using root finding method
-        nextit = Newton(f, init, Jacobian)
+        nextit = Newton(f, [X[i],Y[i]], Jacobian)
         X[i + 1], Y[i + 1] = nextit[0], nextit[1]
     return T, X, Y
 
