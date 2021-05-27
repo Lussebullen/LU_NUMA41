@@ -46,14 +46,14 @@ def ImEulerBuiltin(fp, a, b, h, init):
      return T,X,Y
 
 
-def ImEuler(fp, a, b, h, init):
+def ImEuler(fp, a, b, h, init):         #Implicit Euler with Newton as root implementation
     '''
     :param fp: f'(x,y) as an np.array
     :param a: interval start (for plot, as it doesnt necessarily fit with h)
     :param b: interval end --||--
     :param h: step size
     :param init: initial values as list
-    :return: T, X, Y approximating the solution to ODE on [a,b]
+    :return: T, X, Y approximating the solution to ODE on [a,b] using Implicit Euler with Newton root
     '''
 
     def Jacobian(vec):
@@ -71,17 +71,42 @@ def ImEuler(fp, a, b, h, init):
         X[i + 1], Y[i + 1] = nextit[0], nextit[1]
     return T, X, Y
 
+def trap(fp, a, b, h, init):
+    '''
+    :param fp: f'(x,y) as an np.array
+    :param a: interval start (for plot, as it doesnt necessarily fit with h)
+    :param b: interval end --||--
+    :param h: step size
+    :param init: initial values as list
+    :return: T, X, Y approximating the solution to ODE on [a,b] using Trapezoidalrule and Newton root
+    '''
+    def Jacobian(vec):
+        return np.array([[-1,h/2], [-g /(2*l) * h * np.cos(vec[0]), -1]])
+    intlen = b - a
+    n = int(np.ceil(intlen / h))
+    X, Y = np.zeros(n), np.zeros(n)
+    X[0], Y[0] = init[0], init[1]
+    T = np.linspace(a, b, n)
+    for i in range(n - 1):
+        # Root form of problem to solve
+        f = lambda x: np.array([X[i], Y[i]]) - x + h/2*(fp(x[0], x[1])+fp(X[i],Y[i]))
+        # Solve using root finding method
+        nextit = Newton(f, [X[i],Y[i]], Jacobian)
+        X[i + 1], Y[i + 1] = nextit[0], nextit[1]
+    return T, X, Y
 
 def ode(a,ap):
      return np.array([ap, -g/l*np.sin(a)])
 
 
 y0 = [np.pi/2, 0]
-T, X, Y = ImEulerBuiltin(ode,0,5,0.001,y0)
-T1, X1, Y1 = ImEuler(ode,0,5,0.001,y0)
+T, X, Y = ImEuler(ode,0,5,0.001,y0)
+T1, X1, Y1 = ImEulerBuiltin(ode,0,5,0.001,y0)
+T2, X2, Y2 = trap(ode,0,5,0.001,y0)
 print(list(X))
 print(list(X1))
-print(max(X-X1),max(Y-Y1))
+print(list(X2))
+print(max(Y2-Y1), max(X1-X2))
 plt.plot(T,X,"r",label="a")
 plt.plot(T,Y,"b",label="a'")
 plt.xlabel("Time [s]")
