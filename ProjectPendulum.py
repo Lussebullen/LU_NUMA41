@@ -101,19 +101,15 @@ def ode(a,ap):
      return np.array([ap, -g/l*np.sin(a)])
 
 
-y0 = [np.pi/2, 0]
-T, X, Y = ImEuler(ode,0,5,0.001,y0)
-T1, X1, Y1 = ImEulerBuiltin(ode,0,5,0.001,y0)
-T2, X2, Y2 = trap(ode,0,5,0.001,y0)
-print(list(X))
-print(list(X1))
-print(list(X2))
-print(max(Y2-Y1), max(X1-X2))
-plt.plot(T,X,"r",label="a")
-plt.plot(T,Y,"b",label="a'")
-plt.xlabel("Time [s]")
-plt.legend()
-plt.show()
+#y0 = [np.pi/2, 0]
+#T, X, Y = ImEuler(ode,0,5,0.001,y0)
+#T1, X1, Y1 = ImEulerBuiltin(ode,0,5,0.001,y0)
+#T2, X2, Y2 = trap(ode,0,5,0.001,y0)
+#plt.plot(T,X,"r",label="a")
+#plt.plot(T,Y,"b",label="a'")
+#plt.xlabel("Time [s]")
+#plt.legend()
+#plt.show()
 
 ########################################################################################################################
 #e) Obstacle version
@@ -133,6 +129,11 @@ def lagrange(x, yarray, xarray):
 
 #Newton interpolation
 def divdif(x,y):
+    '''
+    :param x: x coordinates
+    :param y: y coordinates
+    :return: Divided differences for set of coordinates
+    '''
     n = len(y)
     mat = np.zeros((n,n))
     mat[:,0]=y
@@ -140,6 +141,22 @@ def divdif(x,y):
         for k in range(n-j): #row
             mat[k][j] = (mat[k+1][j-1]-mat[k][j-1])/(x[k+j]-x[k])
     return mat
+
+def Ninterp(x,X,Y):
+    '''
+    :param x: point for evaluation
+    :param X: Interpolation x coordinates
+    :param Y: Interpolation y coordinates
+    :return: Newton interpolation of X,Y at point x
+    '''
+    A = divdif(X,Y)[0]
+    p = A[0]
+    for i in range(1,3):
+        n=1
+        for j in range(0,i):
+            n=n*(x-X[j])
+        p+=n*A[i]
+    return p
 
 def trapob(fp, a, b, h, init,aob):
     '''
@@ -159,84 +176,66 @@ def trapob(fp, a, b, h, init,aob):
     X[0], Y[0] = init[0], init[1]
     T = np.linspace(a, b, n)
     for i in range(n - 1):
+        tob = []
+        rt = []
         # Root form of problem to solve
         f = lambda x: np.array([X[i], Y[i]]) - x + h/2*(fp(x[0], x[1])+fp(X[i],Y[i]))
         # Solve using root finding method
         nextit = Newton(f, [X[i],Y[i]], Jacobian)
         X[i + 1], Y[i + 1] = nextit[0], nextit[1]
-        if (i>1):
+        if (i>1 and Y[i]<0):
             #3 last consecutive values.
             tp, xp, yp = T[i-2:i+1], X[i-2:i+1], Y[i-2:i+1]
-            #Newton interpolation NOT WORKING YET
-            def poly(x):
-                A = divdif(tp, tx)[0]
-                p = A[0]
-                for i in range(1,3):
-                    tmp = 1
-                    for j in range(0,i):
-                        tmp=tmp*(x-tp[j])
-                    p+=tmp*A[i]
-                return p
+            #Newton interpolation at previous 3 points root form with obstacle angle
+            apoly = lambda x: Ninterp(x, tp, xp) - aob
+            #Check for root at obstacle, this time use builtin root to save some trouble
+            rt1, rt2 = sp.root(apoly, tp[0]).x, sp.root(apoly, tp[2]).x
+            #Check if a root is in interval
+            if (tp[0]<=rt1 and rt1<=tp[2]):
+                tob = tob + [rt1]
+            if (tp[0]<=rt2 and rt2<=tp[2]):
+                tob = tob + [rt2]
+        if (len(tob)!=0):
+            rt = rt + min(tob)
+            Y[i+1]=-Y[i+1]
 
-    return T, X, Y
+    return T, X, Y, rt
 
-def Ninterp(x,X,Y):
-    A = divdif(X,Y)[0]
-    p = A[0]
-    for i in range(1,3):
-        n=1
-        for j in range(0,i):
-            n=n*(x-X[j])
-        p+=n*A[i]
-    return p
+y0 = [np.pi/2, 0]
+T, X, Y, obstacletime = trapob(ode,0,5,0.001,y0,-1/6*np.pi)
+print(list(X))
+print(list(Y))
+plt.plot(T,X,"r")
+plt.plot(T,Y,"b")
+plt.show()
+print(obstacletime)
 
+#############
+# Animation
+#############
 
 # First set up the figure, the axis, and the plot element we want to animate
-# fig = plt.figure()
-# ax = plt.axes(xlim=(-1.1, 1.1), ylim=(-1.2, 1))
-# point, = ax.plot([X[0]], [Y[0]], 'o')
-# plt.plot(0,0,"r.")
-# # initialization function: plot the background of each frame
-# def init():
-#     line.set_data([], [])
-#     return line,
-#
-# # animation function.  This is called sequentially
-# def animate(i):
-#     x = np.sin(X[i])
-#     y = -np.cos(X[i])
-#     point.set_data(x, y)
-#     return point,
-#
-# # call the animator.  blit=True means only re-draw the parts that have changed.
-# anim = animation.FuncAnimation(fig, animate,frames=5000, interval=1, blit=True)
-#
-# plt.show()
+fig = plt.figure()
+ax = plt.axes(xlim=(-1.1, 1.1), ylim=(-1.2, 1))
+point, = ax.plot([X[0]], [Y[0]], 'o')
+plt.plot(0,0,"r.")
+plt.plot(np.sin(-np.pi/6),-np.cos(-np.pi/6),"go")
+# initialization function: plot the background of each frame
+def init():
+    line.set_data([], [])
+    return line,
 
-########################################################################################################################
-# Attempt with Newton
-########################################################################################################################
+# animation function.  This is called sequentially
+def animate(i):
+    x = np.sin(X[i])
+    y = -np.cos(X[i])
+    point.set_data(x, y)
+    return point,
 
-# def Newt(F, init, J):
-#     '''
-#     :param F: function to root
-#     :param init: initial guess
-#     :param J: Jacobian of F
-#     :return: root of F
-#     '''
-#     x2=init
-#     for i in range(3):
-#         Dx = np.linalg.solve(J(x2),-F(x2))
-#         x2 = x2+Dx
-#     return x2
-#
-#
-# g, l, dt = 9.82, 1, 0.5
-#
-#
-# def F(a,a0):
-#     return a0-a1+dt/2*np.array([a0[1]+a[1],-g/l*(np.sin(a0[0]+np.sin(a[0])))])
+# call the animator.  blit=True means only re-draw the parts that have changed.
+anim = animation.FuncAnimation(fig, animate,frames=5000, interval=1, blit=True)
 
+plt.show()
 
 
 
